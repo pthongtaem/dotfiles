@@ -2,8 +2,7 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 export PATH=$HOME/google-cloud-sdk/bin:/opt/homebrew/opt/openjdk/bin:~/.bun/bin:$HOME/.cargo/env:$PATH
-export PATH="${PATH}:~/.kubescape/bin"
-export PATH="${PATH}:${HOME}/.krew/bin"
+# export PATH="${PATH}:${HOME}/.krew/bin"
 
 export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agent.sock
 
@@ -86,12 +85,6 @@ ZSH_THEME=""
 plugins=(
   git
   zsh-nvm
-  z
-  pnpm
-  aws
-  kubectl
-  common-aliases
-  node
   zsh-syntax-highlighting
   zsh-autosuggestions
 )
@@ -126,25 +119,76 @@ eval "$(starship init zsh)"
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias l="eza -l"
-alias ls="eza"
-alias vim=nvim
-alias env_dbt='source ~/work/try/python/dbt/dbt-env/bin/activate'
+# alias vim=nvim
+# alias env_dbt='source ~/work/try/python/dbt/dbt-env/bin/activate'
+
+# ---- Eza (better ls) -----
+alias l="eza -l --icons --git -a --ignore-glob="".git||.DS_Store"""
+alias lt="eza --tree --level=2 --long --icons --git --ignore-glob="".git||.DS_Store"""
+alias ltree="eza --tree --level=2  --icons --git --ignore-glob="".git||.DS_Store"""
+
 
 # fpath+=($HOME/.zsh/pure)
 # autoload -U promptinit; promptinit
 # prompt pure
 
 # pnpm
-export PNPM_HOME="~/Library/pnpm"
-export PATH="$PNPM_HOME:$PATH"
+# export PNPM_HOME="~/Library/pnpm"
+# export PATH="$PNPM_HOME:$PATH"
 # pnpm end
 
-eval "$(rbenv init - zsh)"
+# eval "$(rbenv init - zsh)"
 
 # bun completions
-[ -s "~/.bun/_bun" ] && source "~/.bun/_bun"
+# [ -s "~/.bun/_bun" ] && source "~/.bun/_bun"
 
 # bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
+# export BUN_INSTALL="$HOME/.bun"
+# export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Set up fzf key bindings and fuzzy completion
+source <(fzf --zsh)
+
+# -- Use fd instead of fzf --
+export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND="fd --type=d --hidden --strip-cwd-prefix --exclude .git"
+
+# Use fd (https://github.com/sharkdp/fd) for listing path candidates.
+# - The first argument to the function ($1) is the base path to start traversal
+# - See the source code (completion.{bash,zsh}) for the details.
+_fzf_compgen_path() {
+  fd --hidden --exclude .git . "$1"
+}
+
+# Use fd to generate the list for directory completion
+_fzf_compgen_dir() {
+  fd --type=d --hidden --exclude .git . "$1"
+}
+
+show_file_or_dir_preview="if [ -d {} ]; then eza --tree --color=always {} | head -200; else bat -n --color=always --line-range :500 {}; fi"
+
+export FZF_CTRL_T_OPTS="--preview '$show_file_or_dir_preview'"
+export FZF_ALT_C_OPTS="--preview 'eza --tree --color=always {} | head -200'"
+
+# Advanced customization of fzf options via _fzf_comprun function
+# - The first argument to the function is the name of the command.
+# - You should make sure to pass the rest of the arguments to fzf.
+_fzf_comprun() {
+  local command=$1
+  shift
+
+  case "$command" in
+    cd)           fzf --preview 'eza --tree --color=always {} | head -200' "$@" ;;
+    export|unset) fzf --preview "eval 'echo \${}'"         "$@" ;;
+    ssh)          fzf --preview 'dig {}'                   "$@" ;;
+    *)            fzf --preview "$show_file_or_dir_preview" "$@" ;;
+  esac
+}
+
+# ----- Bat (better cat) -----
+export BAT_THEME=tokyonight_night
+
+# ---- Zoxide (better cd) ----
+eval "$(zoxide init zsh)"
+alias cd="z"
