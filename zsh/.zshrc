@@ -123,6 +123,7 @@ eval "$(starship init zsh)"
 # alias env_dbt='source ~/work/try/python/dbt/dbt-env/bin/activate'
 
 # ---- Eza (better ls) -----
+alias ls="eza"
 alias l="eza -l --icons --git -a --ignore-glob="".git||.DS_Store"""
 alias lt="eza --tree --level=2 --long --icons --git --ignore-glob="".git||.DS_Store"""
 alias ltree="eza --tree --level=2  --icons --git --ignore-glob="".git||.DS_Store"""
@@ -192,3 +193,9 @@ export BAT_THEME=tokyonight_night
 # ---- Zoxide (better cd) ----
 eval "$(zoxide init zsh)"
 alias cd="z"
+#
+# The following lines have been added by Docker Desktop to enable Docker CLI completions.
+fpath=(/Users/polchompunoot/.docker/completions $fpath)
+autoload -Uz compinit
+compinit
+# End of Docker CLI completions
