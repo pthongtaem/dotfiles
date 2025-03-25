@@ -4,3 +4,4 @@
 vim.g.lazyvim_prettier_needs_config = true
 vim.g.lazyvim_rust_diagnostics = "rust-analyzer"
 vim.g.lazyvim_picker = "snacks"
+vim.g.ai_cmp = false
