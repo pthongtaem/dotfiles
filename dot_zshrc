@@ -59,6 +59,16 @@ alias lt="eza --tree --level=2 --long --icons --git --ignore-glob '.git|.DS_Stor
 alias ltree="eza --tree --level=2 --icons --git --ignore-glob '.git|.DS_Store'"
 alias gca='gemini "Review my staged changes, suggest a one-line Conventional Commit message, and wait for my OK before committing."'
 
+alias gst='git status'
+alias ga='git add'
+alias gc='git commit -v'
+alias gp='git push'
+alias ggpush='git push'
+alias gl='git pull'
+alias ggpull='git pull'
+alias gco='git checkout'
+alias gcb='git checkout -b'
+
 export BAT_THEME="tokyonight_night"
 
 # Final Greeting
