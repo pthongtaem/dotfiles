@@ -1,10 +1,10 @@
 # ------------------------------------------------------------------------------
 # 1. OPTIMIZED HOMEBREW & ZSH SPEEDUP
 # ------------------------------------------------------------------------------
-# กำหนด Homebrew Prefix แบบตายตัวเพื่อลดเวลาโหลด (Hardcoded for Apple Silicon)
+# Set static Homebrew prefix for faster loading (Hardcoded for Apple Silicon)
 export HOMEBREW_PREFIX="/opt/homebrew"
 
-# Speed up compinit by checking cache (รัน compinit แค่วันละครั้งพอ)
+# Speed up compinit by checking cache (Run compinit once a day)
 autoload -Uz compinit
 for dump in "${ZDOTDIR:-$HOME}/.zcompdump"(N.mh+24); do
   compinit
@@ -14,8 +14,8 @@ compinit -C
 # ------------------------------------------------------------------------------
 # 2. ENVIRONMENT VARIABLES & PATHS
 # ------------------------------------------------------------------------------
-# รวบรวม PATH ทั้งหมดไว้ที่เดียวเพื่อให้จัดการง่าย
-typeset -U path # ป้องกัน path ซ้ำซ้อน
+# Consolidate PATH for easier management
+typeset -U path # Prevent duplicate path entries
 path=(
   "$HOME/.local/bin"
   "$HOME/.bun/bin"
@@ -49,16 +49,16 @@ export EDITOR='vim'
 export BAT_THEME="tokyonight_night"
 
 # ------------------------------------------------------------------------------
-# 3. HISTORY CONFIGURATION (เพิ่มเข้าไปใหม่)
+# 3. HISTORY CONFIGURATION
 # ------------------------------------------------------------------------------
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=10000
 SAVEHIST=10000
-setopt HIST_IGNORE_DUPS       # ไม่เก็บคำสั่งซ้ำติดกัน
-setopt HIST_IGNORE_ALL_DUPS   # ลบคำสั่งซ้ำตัวเก่าทิ้งเมื่อพิมพ์ใหม่
-setopt HIST_REDUCE_BLANKS     # ลบช่องว่างส่วนเกิน
-setopt SHARE_HISTORY          # แชร์ history ข้าม terminal ทันที
-setopt INC_APPEND_HISTORY     # บันทึกคำสั่งทันทีที่รันเสร็จ
+setopt HIST_IGNORE_DUPS       # Do not save consecutive duplicates
+setopt HIST_IGNORE_ALL_DUPS   # Remove older duplicate commands when a new one is typed
+setopt HIST_REDUCE_BLANKS     # Remove excess blanks
+setopt SHARE_HISTORY          # Share history across terminal sessions immediately
+setopt INC_APPEND_HISTORY     # Save commands as soon as they are executed
 
 # ------------------------------------------------------------------------------
 # 4. ANTIDOTE PLUGIN MANAGER
