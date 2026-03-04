@@ -1,35 +1,74 @@
 # ------------------------------------------------------------------------------
-# 1. ENVIRONMENT VARIABLES & PATHS (เก็บไว้ทั้งหมด)
+# 1. OPTIMIZED HOMEBREW & ZSH SPEEDUP
 # ------------------------------------------------------------------------------
-export PATH="$HOME/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
-export PATH="/opt/homebrew/opt/openjdk/bin:$HOME/.bun/bin:$HOME/.cargo/bin:$PATH"
-export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
+# กำหนด Homebrew Prefix แบบตายตัวเพื่อลดเวลาโหลด (Hardcoded for Apple Silicon)
+export HOMEBREW_PREFIX="/opt/homebrew"
+
+# Speed up compinit by checking cache (รัน compinit แค่วันละครั้งพอ)
+autoload -Uz compinit
+for dump in "${ZDOTDIR:-$HOME}/.zcompdump"(N.mh+24); do
+  compinit
+done
+compinit -C
+
+# ------------------------------------------------------------------------------
+# 2. ENVIRONMENT VARIABLES & PATHS
+# ------------------------------------------------------------------------------
+# รวบรวม PATH ทั้งหมดไว้ที่เดียวเพื่อให้จัดการง่าย
+typeset -U path # ป้องกัน path ซ้ำซ้อน
+path=(
+  "$HOME/.local/bin"
+  "$HOME/.bun/bin"
+  "$HOME/.cargo/bin"
+  "$HOME/.lmstudio/bin"
+  "$HOME/.antigravity/antigravity/bin"
+  "$HOME/.local/share/solana/install/active_release/bin"
+  "$HOME/Library/Android/sdk/emulator"
+  "$HOME/Library/Android/sdk/platform-tools"
+  "$HOMEBREW_PREFIX/bin"
+  "$HOMEBREW_PREFIX/sbin"
+  "$HOMEBREW_PREFIX/opt/openjdk/bin"
+  "$HOMEBREW_PREFIX/opt/mysql-client/bin"
+  /usr/local/bin
+  /usr/bin
+  /bin
+  /usr/sbin
+  /sbin
+  $path
+)
 
 # Android & Java
 export ANDROID_HOME="$HOME/Library/Android/sdk"
-export PATH="$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools"
 export JAVA_HOME="/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home"
 
 # Compiler Flags & 1Password
-export LDFLAGS="-L/opt/homebrew/opt/mysql-client/lib"
-export CPPFLAGS="-I/opt/homebrew/opt/mysql-client/include"
+export LDFLAGS="-L$HOMEBREW_PREFIX/opt/mysql-client/lib"
+export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/mysql-client/include"
 export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-export EDITOR='nano'
-
-# Tool Paths (Section 7 เดิม ย้ายขึ้นมาไว้นี่ให้หมด)
-export PATH="$PATH:$HOME/.lmstudio/bin"
-export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
-export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+export EDITOR='vim'
+export BAT_THEME="tokyonight_night"
 
 # ------------------------------------------------------------------------------
-# 2. ANTIDOTE PLUGIN MANAGER (แทนที่ OMZ Configuration)
+# 3. HISTORY CONFIGURATION (เพิ่มเข้าไปใหม่)
 # ------------------------------------------------------------------------------
-# เรียกใช้ Antidote
-source $(brew --prefix)/opt/antidote/share/antidote/antidote.zsh
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=10000
+SAVEHIST=10000
+setopt HIST_IGNORE_DUPS       # ไม่เก็บคำสั่งซ้ำติดกัน
+setopt HIST_IGNORE_ALL_DUPS   # ลบคำสั่งซ้ำตัวเก่าทิ้งเมื่อพิมพ์ใหม่
+setopt HIST_REDUCE_BLANKS     # ลบช่องว่างส่วนเกิน
+setopt SHARE_HISTORY          # แชร์ history ข้าม terminal ทันที
+setopt INC_APPEND_HISTORY     # บันทึกคำสั่งทันทีที่รันเสร็จ
+
+# ------------------------------------------------------------------------------
+# 4. ANTIDOTE PLUGIN MANAGER
+# ------------------------------------------------------------------------------
+fpath=($HOME/.docker/completions $fpath)
+source "$HOMEBREW_PREFIX/opt/antidote/share/antidote/antidote.zsh"
 antidote load
 
 # ------------------------------------------------------------------------------
-# 3. INTERACTIVE TOOL INITS (เก็บไว้ทั้งหมด)
+# 5. INTERACTIVE TOOL INITS
 # ------------------------------------------------------------------------------
 eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
@@ -37,21 +76,16 @@ alias cd="z"
 eval "$(fnm env --use-on-cd --shell zsh)"
 
 # ------------------------------------------------------------------------------
-# 4. FZF CONFIGURATION (เก็บไว้ทั้งหมด)
+# 6. FZF CONFIGURATION
 # ------------------------------------------------------------------------------
 source <(fzf --zsh)
 export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_ALT_C_COMMAND="fd --type=d --hidden --strip-cwd-prefix --exclude .git"
 
-# ... (Preview functions และ _fzf_comprun ของคุณใส่ไว้ตรงนี้เหมือนเดิม) ...
-
 # ------------------------------------------------------------------------------
-# 5. ALIASES & COMPLETIONS
+# 7. ALIASES
 # ------------------------------------------------------------------------------
-fpath=($HOME/.docker/completions $fpath)
-autoload -Uz compinit && compinit
-
 # Eza & Gemini Aliases
 alias ls="eza"
 alias l="eza -l --icons --git -a --ignore-glob '.git|.DS_Store'"
@@ -59,6 +93,7 @@ alias lt="eza --tree --level=2 --long --icons --git --ignore-glob '.git|.DS_Stor
 alias ltree="eza --tree --level=2 --icons --git --ignore-glob '.git|.DS_Store'"
 alias gca='gemini "Review my staged changes, suggest a one-line Conventional Commit message, and wait for my OK before committing."'
 
+# Git Aliases
 alias gst='git status'
 alias ga='git add'
 alias gc='git commit -v'
@@ -69,9 +104,9 @@ alias ggpull='git pull'
 alias gco='git checkout'
 alias gcb='git checkout -b'
 
-export BAT_THEME="tokyonight_night"
-
-# Final Greeting
+# ------------------------------------------------------------------------------
+# FINAL GREETING
+# ------------------------------------------------------------------------------
 if [[ -n $(command -v figlet) && -n $(command -v lolcat) ]]; then
   figlet "It works on my machine." | lolcat
 fi
