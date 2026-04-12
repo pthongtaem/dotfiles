@@ -1,8 +1,53 @@
+### Added by Zinit's installer
+if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
+    print -P "%F{33} %F{220}Installing %F{33}ZDHARMA-CONTINUUM%F{220} Initiative Plugin Manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
+    command mkdir -p "$HOME/.local/share/zinit" && command chmod g-rwX "$HOME/.local/share/zinit"
+    command git clone https://github.com/zdharma-continuum/zinit "$HOME/.local/share/zinit/zinit.git" && \
+        print -P "%F{33} %F{34}Installation successful.%f%b" || \
+        print -P "%F{160} The clone has failed.%f%b"
+fi
+
+source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
+
+# Load a few important annexes, without Turbo
+# (this is currently required for annexes)
+zinit light-mode for \
+    zdharma-continuum/zinit-annex-as-monitor \
+    zdharma-continuum/zinit-annex-bin-gem-node \
+    zdharma-continuum/zinit-annex-patch-dl \
+    zdharma-continuum/zinit-annex-rust
+
+### End of Zinit's installer chunk
+
+zinit snippet OMZ::lib/theme-and-appearance.zsh
+zinit snippet OMZ::lib/completion.zsh
+zinit snippet OMZ::lib/history.zsh
+zinit snippet OMZ::lib/key-bindings.zsh
+
+zinit ice as"command" from"gh-r" atload'eval "$(starship init zsh)"'
+zinit light starship/starship
+
+zinit ice wait"0" atload"_zsh_autosuggest_start"
+zinit light zsh-users/zsh-autosuggestions
+
+zinit ice wait"0" atinit"zpcompinit; zpcdreplay"
+zinit light zsh-users/zsh-syntax-highlighting
+
+zinit ice wait"0"
+zinit light zsh-users/zsh-completions
+
+zinit snippet OMZ::plugins/git/git.plugin.zsh
+zinit snippet OMZ::plugins/sudo/sudo.plugin.zsh
+
 # ------------------------------------------------------------------------------
 # 1. OPTIMIZED HOMEBREW & ZSH SPEEDUP
 # ------------------------------------------------------------------------------
 # Set static Homebrew prefix for faster loading (Hardcoded for Apple Silicon)
 export HOMEBREW_PREFIX="/opt/homebrew"
+
+fpath+=~/.zfunc
 
 # Speed up compinit by checking cache (Run compinit once a day)
 autoload -Uz compinit
@@ -54,23 +99,12 @@ export BAT_THEME="tokyonight_night"
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=10000
 SAVEHIST=10000
-setopt HIST_IGNORE_DUPS       # Do not save consecutive duplicates
-setopt HIST_IGNORE_ALL_DUPS   # Remove older duplicate commands when a new one is typed
-setopt HIST_REDUCE_BLANKS     # Remove excess blanks
-setopt SHARE_HISTORY          # Share history across terminal sessions immediately
-setopt INC_APPEND_HISTORY     # Save commands as soon as they are executed
-
-# ------------------------------------------------------------------------------
-# 4. ANTIDOTE PLUGIN MANAGER
-# ------------------------------------------------------------------------------
-fpath=($HOME/.docker/completions $fpath)
-source "$HOMEBREW_PREFIX/opt/antidote/share/antidote/antidote.zsh"
-antidote load
+setopt appendhistory
+setopt sharehistory
 
 # ------------------------------------------------------------------------------
 # 5. INTERACTIVE TOOL INITS
 # ------------------------------------------------------------------------------
-eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
 alias cd="z"
 eval "$(fnm env --use-on-cd --shell zsh)"
@@ -110,3 +144,18 @@ alias gcb='git checkout -b'
 if [[ -n $(command -v figlet) && -n $(command -v lolcat) ]]; then
   figlet "It works on my machine." | lolcat
 fi
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init - zsh)"
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/polchompunootthongtaemnaayudhya/.lmstudio/bin"
+# End of LM Studio CLI section
+
+# pnpm
+export PNPM_HOME="/Users/polchompunootthongtaemnaayudhya/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end

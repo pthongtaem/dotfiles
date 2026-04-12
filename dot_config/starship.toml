@@ -84,7 +84,7 @@ show_always = true
 style_user = "bg:surface0 fg:text"
 style_root = "bg:surface0 fg:text"
 format = '[ $user ]($style)'
-aliases = { "polchompunoot" = "don" }
+aliases = { "polchompunootthongtaemnaayudhya" = "don" }
 
 [directory]
 style = "fg:mantle bg:flamingo"
