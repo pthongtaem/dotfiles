@@ -10,7 +10,7 @@ Personal configuration files (dotfiles) for macOS, managed with [chezmoi](https:
 ## ✨ Highlights
 
 - 🚀 **Fast Shell**: Zsh optimized for Apple Silicon with lazy-loading completions.
-- 🛠️ **Plugin Management**: Uses [Antidote](https://getantidote.github.io/) for high-performance Zsh plugins.
+- 🛠️ **Plugin Management**: Uses [Zinit](https://github.com/zdharma-continuum/zinit) with turbo mode for high-performance Zsh plugin loading.
 - 🎨 **Aesthetics**: Consistent [Catppuccin Mocha](https://github.com/catppuccin/catppuccin) and [Tokyo Night](https://github.com/folke/tokyonight.nvim) themes.
 - 🗔 **Window Management**: [AeroSpace](https://github.com/nikitabobko/AeroSpace) for i3-like tiling on macOS.
 - 🤖 **AI Workflow**: Custom Gemini AI integration for smart commit messages (`gca`).
@@ -55,10 +55,12 @@ chezmoi apply
 Install the essential tools via Brew:
 
 ```bash
-brew install starship zoxide fzf eza fnm bat fd antidote figlet lolcat
+brew install zoxide fzf eza fnm bat fd pyenv figlet lolcat
 ```
 
 For **Tmux** plugins, press `Ctrl + Space` then `I` inside a tmux session.
+
+> **Note**: Zinit และ Zsh plugins ต่างๆ (starship, zsh-autosuggestions, syntax-highlighting ฯลฯ) จะถูก bootstrap อัตโนมัติในครั้งแรกที่เปิด shell — ไม่ต้องติดตั้งเอง
 
 ## ⌨️ Custom Aliases & Shortcuts
 
@@ -66,8 +68,9 @@ For **Tmux** plugins, press `Ctrl + Space` then `I` inside a tmux session.
 | :--- | :--- | :--- |
 | `cd` | `z` | Smart navigation with zoxide. |
 | `ls` | `eza` | Modern alternative to `ls` with icons. |
-| `l` | `eza -la` | Detailed list view. |
-| `lt` | `eza --tree` | Directory tree view. |
+| `l` | `eza -l --icons --git -a` | Detailed list view with icons. |
+| `lt` | `eza --tree --level=2 --long` | Directory tree view. |
+| `ltree` | `eza --tree --level=2 --icons` | Compact tree view. |
 | `gca` | `gemini ...` | **AI Commit**: Review changes and suggest a commit message. |
 | `gst` | `git status` | Quick git status check. |
 
@@ -80,4 +83,4 @@ For **Tmux** plugins, press `Ctrl + Space` then `I` inside a tmux session.
 
 ---
 
-*Generated with ❤️ by Gemini CLI*
+*Generated with ❤️ by Gemini CLI & Claude Code*

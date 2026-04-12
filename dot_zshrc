@@ -1,21 +1,13 @@
 # ------------------------------------------------------------------------------
-# 1. OPTIMIZED HOMEBREW & ZSH SPEEDUP
+# 1. ENVIRONMENT & PATHS (Move to top for speed)
 # ------------------------------------------------------------------------------
-# Set static Homebrew prefix for faster loading (Hardcoded for Apple Silicon)
 export HOMEBREW_PREFIX="/opt/homebrew"
+export PYENV_ROOT="$HOME/.pyenv"
+export PNPM_HOME="$HOME/Library/pnpm"
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export JAVA_HOME="/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home"
 
-# Speed up compinit by checking cache (Run compinit once a day)
-autoload -Uz compinit
-for dump in "${ZDOTDIR:-$HOME}/.zcompdump"(N.mh+24); do
-  compinit
-done
-compinit -C
-
-# ------------------------------------------------------------------------------
-# 2. ENVIRONMENT VARIABLES & PATHS
-# ------------------------------------------------------------------------------
-# Consolidate PATH for easier management
-typeset -U path # Prevent duplicate path entries
+typeset -U path
 path=(
   "$HOME/.local/bin"
   "$HOME/.bun/bin"
@@ -29,6 +21,8 @@ path=(
   "$HOMEBREW_PREFIX/sbin"
   "$HOMEBREW_PREFIX/opt/openjdk/bin"
   "$HOMEBREW_PREFIX/opt/mysql-client/bin"
+  "$PYENV_ROOT/bin"
+  "$PNPM_HOME"
   /usr/local/bin
   /usr/bin
   /bin
@@ -37,9 +31,7 @@ path=(
   $path
 )
 
-# Android & Java
-export ANDROID_HOME="$HOME/Library/Android/sdk"
-export JAVA_HOME="/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home"
+fpath+=~/.zfunc
 
 # Compiler Flags & 1Password
 export LDFLAGS="-L$HOMEBREW_PREFIX/opt/mysql-client/lib"
@@ -49,44 +41,88 @@ export EDITOR='vim'
 export BAT_THEME="tokyonight_night"
 
 # ------------------------------------------------------------------------------
-# 3. HISTORY CONFIGURATION
+# 2. GREETING (Show before prompt)
+# ------------------------------------------------------------------------------
+if command -v figlet &> /dev/null; then
+    figlet "It works on my machine." | lolcat
+fi
+
+# ------------------------------------------------------------------------------
+# 3. ZINIT INSTALLER & CORE
+# ------------------------------------------------------------------------------
+if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
+    command mkdir -p "$HOME/.local/share/zinit"
+    command git clone https://github.com/zdharma-continuum/zinit "$HOME/.local/share/zinit/zinit.git"
+fi
+
+source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
+
+# ------------------------------------------------------------------------------
+# 3. PROMPT (Starship) - Load this as fast as possible
+# ------------------------------------------------------------------------------
+zinit ice as"command" from"gh-r" atload'eval "$(starship init zsh)"'
+zinit light starship/starship
+
+# ------------------------------------------------------------------------------
+# 4. PLUGINS & SNIPPETS (Turbo Mode - wait"0")
+# ------------------------------------------------------------------------------
+# Load annexes
+zinit light-mode for \
+    zdharma-continuum/zinit-annex-as-monitor \
+    zdharma-continuum/zinit-annex-bin-gem-node \
+    zdharma-continuum/zinit-annex-patch-dl \
+    zdharma-continuum/zinit-annex-rust
+
+# Deferred loading for non-critical components
+zinit wait"0" lucid for \
+    OMZ::lib/theme-and-appearance.zsh \
+    OMZ::lib/completion.zsh \
+    OMZ::lib/history.zsh \
+    OMZ::lib/key-bindings.zsh \
+    OMZ::plugins/git/git.plugin.zsh \
+    OMZ::plugins/sudo/sudo.plugin.zsh
+
+zinit ice wait"0" lucid atload"_zsh_autosuggest_start"
+zinit light zsh-users/zsh-autosuggestions
+
+zinit ice wait"0" lucid atinit"zpcompinit; zpcdreplay"
+zinit light zsh-users/zsh-syntax-highlighting
+
+zinit ice wait"0" lucid
+zinit light zsh-users/zsh-completions
+
+# ------------------------------------------------------------------------------
+# 5. TOOLS INITIALIZATION (Deferred with Zinit Turbo)
+# ------------------------------------------------------------------------------
+zinit ice wait"0" lucid atload'eval "$(zoxide init zsh)"; alias cd="z"'
+zinit light zdharma-continuum/null
+
+zinit ice wait"0" lucid atload'eval "$(fnm env --use-on-cd --shell zsh)"'
+zinit light zdharma-continuum/null
+
+zinit ice wait"0" lucid atload'source <(fzf --zsh)'
+zinit light zdharma-continuum/null
+
+zinit ice wait"0" lucid atload'eval "$(pyenv init - zsh)"'
+zinit light zdharma-continuum/null
+
+# ------------------------------------------------------------------------------
+# 6. HISTORY & ALIASES
 # ------------------------------------------------------------------------------
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=10000
 SAVEHIST=10000
-setopt HIST_IGNORE_DUPS       # Do not save consecutive duplicates
-setopt HIST_IGNORE_ALL_DUPS   # Remove older duplicate commands when a new one is typed
-setopt HIST_REDUCE_BLANKS     # Remove excess blanks
-setopt SHARE_HISTORY          # Share history across terminal sessions immediately
-setopt INC_APPEND_HISTORY     # Save commands as soon as they are executed
+setopt appendhistory
+setopt sharehistory
 
-# ------------------------------------------------------------------------------
-# 4. ANTIDOTE PLUGIN MANAGER
-# ------------------------------------------------------------------------------
-fpath=($HOME/.docker/completions $fpath)
-source "$HOMEBREW_PREFIX/opt/antidote/share/antidote/antidote.zsh"
-antidote load
-
-# ------------------------------------------------------------------------------
-# 5. INTERACTIVE TOOL INITS
-# ------------------------------------------------------------------------------
-eval "$(starship init zsh)"
-eval "$(zoxide init zsh)"
-alias cd="z"
-eval "$(fnm env --use-on-cd --shell zsh)"
-
-# ------------------------------------------------------------------------------
-# 6. FZF CONFIGURATION
-# ------------------------------------------------------------------------------
-source <(fzf --zsh)
+# FZF Config
 export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_ALT_C_COMMAND="fd --type=d --hidden --strip-cwd-prefix --exclude .git"
 
-# ------------------------------------------------------------------------------
-# 7. ALIASES
-# ------------------------------------------------------------------------------
-# Eza & Gemini Aliases
+# Aliases
 alias ls="eza"
 alias l="eza -l --icons --git -a --ignore-glob '.git|.DS_Store'"
 alias lt="eza --tree --level=2 --long --icons --git --ignore-glob '.git|.DS_Store'"
@@ -105,8 +141,8 @@ alias gco='git checkout'
 alias gcb='git checkout -b'
 
 # ------------------------------------------------------------------------------
-# FINAL GREETING
+# 8. LOCAL OVERRIDES (Not tracked in chezmoi/git)
 # ------------------------------------------------------------------------------
-if [[ -n $(command -v figlet) && -n $(command -v lolcat) ]]; then
-  figlet "It works on my machine." | lolcat
+if [[ -f "$HOME/.zshrc_local" ]]; then
+    source "$HOME/.zshrc_local"
 fi
