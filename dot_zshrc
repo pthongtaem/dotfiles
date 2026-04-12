@@ -81,6 +81,7 @@ zinit wait"0" lucid for \
     OMZ::lib/completion.zsh \
     OMZ::lib/history.zsh \
     OMZ::lib/key-bindings.zsh \
+    OMZ::lib/git.zsh \
     OMZ::plugins/git/git.plugin.zsh \
     OMZ::plugins/sudo/sudo.plugin.zsh
 
