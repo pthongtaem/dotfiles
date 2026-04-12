@@ -60,7 +60,7 @@ brew install zoxide fzf eza fnm bat fd pyenv figlet lolcat
 
 For **Tmux** plugins, press `Ctrl + Space` then `I` inside a tmux session.
 
-> **Note**: Zinit และ Zsh plugins ต่างๆ (starship, zsh-autosuggestions, syntax-highlighting ฯลฯ) จะถูก bootstrap อัตโนมัติในครั้งแรกที่เปิด shell — ไม่ต้องติดตั้งเอง
+> **Note**: Zinit and various Zsh plugins (starship, zsh-autosuggestions, syntax-highlighting, etc.) will be automatically bootstrapped the first time you open the shell — no manual installation required.
 
 ## ⌨️ Custom Aliases & Shortcuts
 
