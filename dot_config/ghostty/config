@@ -1,0 +1,8 @@
+theme = Catppuccin Mocha
+font-size = 14
+font-family = "MesloLgs Nerd Font Mono"
+mouse-hide-while-typing = true
+clipboard-read = allow
+copy-on-select = clipboard
+window-padding-x = 10,10
+window-padding-y = 10,0

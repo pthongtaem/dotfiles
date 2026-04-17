@@ -72,7 +72,6 @@ For **Tmux** plugins, press `Ctrl + Space` then `I` inside a tmux session.
 | `lt` | `eza --tree --level=2 --long` | Directory tree view. |
 | `ltree` | `eza --tree --level=2 --icons` | Compact tree view. |
 | `gca` | `gemini ...` | **AI Commit**: Review changes and suggest a commit message. |
-| `gst` | `git status` | Quick git status check. |
 
 ## 📐 Window Management (AeroSpace)
 
