@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Target platform remains macOS on Apple Silicon, matching `CLAUDE.md`.
+- Target platform remains macOS on Apple Silicon.
 - Preserve Zinit turbo loading for non-critical plugins and tools.
 - Preserve `~/.zshrc_local` as the final machine-local override.
 - Do not add a new testing framework or runtime dependency.
@@ -24,13 +24,14 @@
 
 **Files:**
 - Create: `.chezmoiignore`
+- Delete: `CLAUDE.md`
 - Verify: `README.md`
-- Verify: `CLAUDE.md`
+- Verify: future `AGENTS.md`
 - Verify: `docs/superpowers/plans/2026-07-13-zshrc-best-practices.md`
 
 **Interfaces:**
 - Consumes: chezmoi source layout in this repository.
-- Produces: an ignore policy that prevents repository documentation from mapping to `~/README.md`, `~/CLAUDE.md`, and `~/docs/**`.
+- Produces: an ignore policy that prevents repository documentation from mapping to `~/README.md`, `~/AGENTS.md`, and `~/docs/**`; Claude-specific instructions are removed.
 
 - [ ] **Step 1: Capture the current failure state**
 
@@ -40,7 +41,7 @@ Run:
 chezmoi --source "$PWD" status
 ```
 
-Expected: output includes `A CLAUDE.md` and `M README.md`; this demonstrates that repository documentation is incorrectly treated as managed home content.
+Expected: output includes `A CLAUDE.md` and `M README.md`; this captures the current incorrect management before `CLAUDE.md` is deleted.
 
 - [ ] **Step 2: Add the repository-only ignore policy**
 
@@ -48,16 +49,18 @@ Create `.chezmoiignore` with exactly:
 
 ```text
 README.md
-CLAUDE.md
+AGENTS.md
 docs/**
 ```
+
+Delete `CLAUDE.md`; do not create `AGENTS.md` in this change.
 
 - [ ] **Step 3: Verify documentation disappears from the managed set**
 
 Run:
 
 ```bash
-chezmoi --source "$PWD" managed | grep -E '(^|/)(README\.md|CLAUDE\.md|docs/)' && exit 1 || exit 0
+chezmoi --source "$PWD" managed | grep -E '(^|/)(README\.md|AGENTS\.md|CLAUDE\.md|docs/)' && exit 1 || exit 0
 ```
 
 Expected: exit status `0` with no output.
@@ -75,8 +78,8 @@ Expected: only `.zshrc` appears. Its target-only tail contains opencode PATH, a 
 - [ ] **Step 5: Commit the management boundary**
 
 ```bash
-git add .chezmoiignore
-git commit -m "chore: exclude repository docs from chezmoi"
+git add .chezmoiignore CLAUDE.md
+git commit -m "chore: replace Claude-specific repository guidance"
 ```
 
 ### Task 2: Move Zinit Installation Out of Shell Startup
@@ -352,7 +355,52 @@ git add dot_zshrc
 git commit -m "refactor: make zsh environment behavior explicit"
 ```
 
-### Task 5: Validate and Safely Apply from This Checkout
+### Task 5: Separate Shared and Machine-Local Configuration
+
+**Files:**
+- Modify: `dot_zshrc:4-41`
+- Modify locally, never stage: `~/.zshrc_local`
+
+**Interfaces:**
+- Consumes: existing machine-local Java, database, opencode, Rokit, and credential configuration.
+- Produces: a portable shared config and a mode-`600` local config without exposing or committing credential values.
+
+- [ ] **Step 1: Capture failing locality and permission checks**
+
+Run checks that require `dot_zshrc` not to contain Android, Zulu, MySQL flags, 1Password socket, LM Studio, Antigravity, or Solana literals, and require `~/.zshrc_local` mode `600`.
+
+Expected: the shared-config check and permission check fail before implementation.
+
+- [ ] **Step 2: Remove machine-specific values from shared configuration**
+
+Remove `ANDROID_HOME`, hard-coded `JAVA_HOME`, Android paths, LM Studio, Antigravity, Solana, global MySQL `LDFLAGS`/`CPPFLAGS`, and the 1Password socket from `dot_zshrc`. Keep shared Bun, Cargo, pyenv, pnpm, Homebrew, editor, and theme configuration.
+
+- [ ] **Step 3: Merge guarded machine-local configuration without touching secrets**
+
+Preserve all existing lines in `~/.zshrc_local`, replace its current Java initialization with guarded Java 17 initialization, and append guarded blocks only for locally relevant Android, 1Password, LM Studio, Antigravity, Solana, and MySQL client settings. Never print the file contents or stage it.
+
+- [ ] **Step 4: Restrict local-file permissions**
+
+Run:
+
+```bash
+chmod 600 ~/.zshrc_local
+```
+
+- [ ] **Step 5: Verify separation without exposing values**
+
+Run literal-absence checks against `dot_zshrc`, `zsh -n dot_zshrc`, `zsh -n ~/.zshrc_local`, `stat` mode verification, and Git/chezmoi tracking checks.
+
+Expected: syntax passes, local mode is `600`, the local file remains untracked/unmanaged, and no secret values are printed.
+
+- [ ] **Step 6: Commit shared configuration only**
+
+```bash
+git add dot_zshrc docs/superpowers/plans/2026-07-13-zshrc-best-practices.md
+git commit -m "refactor: separate machine-local zsh settings"
+```
+
+### Task 6: Validate and Safely Apply from This Checkout
 
 **Files:**
 - Verify: `dot_zshrc`
@@ -396,7 +444,7 @@ Run:
 chezmoi --source "$PWD" diff
 ```
 
-Expected: only the intended `.zshrc` change appears. `README.md`, `CLAUDE.md`, and `docs/**` do not appear. The diff removes the target-only opencode and duplicate Antigravity PATH entries while retaining Bun completion through the new guarded source block.
+Expected: only the intended `.zshrc` change appears. `README.md`, `AGENTS.md`, and `docs/**` do not appear. The diff removes the target-only opencode and duplicate Antigravity PATH entries while retaining Bun completion through the new guarded source block.
 
 - [ ] **Step 4: Dry-run application from this checkout**
 
