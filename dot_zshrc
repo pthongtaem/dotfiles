@@ -1,26 +1,18 @@
 # ------------------------------------------------------------------------------
 # 1. ENVIRONMENT & PATHS (Move to top for speed)
 # ------------------------------------------------------------------------------
-export HOMEBREW_PREFIX="/opt/homebrew"
-export PYENV_ROOT="$HOME/.pyenv"
-export PNPM_HOME="$HOME/Library/pnpm"
-export ANDROID_HOME="$HOME/Library/Android/sdk"
-export JAVA_HOME="/Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home"
+export HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
+export PYENV_ROOT="${PYENV_ROOT:-$HOME/.pyenv}"
+export PNPM_HOME="${PNPM_HOME:-$HOME/Library/pnpm}"
 
 typeset -U path
 path=(
   "$HOME/.local/bin"
   "$HOME/.bun/bin"
   "$HOME/.cargo/bin"
-  "$HOME/.lmstudio/bin"
-  "$HOME/.antigravity/antigravity/bin"
-  "$HOME/.local/share/solana/install/active_release/bin"
-  "$HOME/Library/Android/sdk/emulator"
-  "$HOME/Library/Android/sdk/platform-tools"
   "$HOMEBREW_PREFIX/bin"
   "$HOMEBREW_PREFIX/sbin"
   "$HOMEBREW_PREFIX/opt/openjdk/bin"
-  "$HOMEBREW_PREFIX/opt/mysql-client/bin"
   "$PYENV_ROOT/bin"
   "$PNPM_HOME"
   /usr/local/bin
@@ -31,33 +23,27 @@ path=(
   $path
 )
 
-fpath+=~/.zfunc
+[[ -d "$HOME/.zfunc" ]] && fpath+=("$HOME/.zfunc")
 
-# Compiler Flags & 1Password
-export LDFLAGS="-L$HOMEBREW_PREFIX/opt/mysql-client/lib"
-export CPPFLAGS="-I$HOMEBREW_PREFIX/opt/mysql-client/include"
-export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
 export EDITOR='vim'
 export BAT_THEME="tokyonight_night"
 
 # ------------------------------------------------------------------------------
 # 2. GREETING (Show before prompt)
 # ------------------------------------------------------------------------------
-if command -v figlet &> /dev/null; then
-    figlet "It works on my machine." | lolcat
+if (( $+commands[figlet] && $+commands[lolcat] )) && [[ -z ${ZSH_NO_GREETING:-} ]]; then
+  figlet "It works on my machine." | lolcat
 fi
 
 # ------------------------------------------------------------------------------
-# 3. ZINIT INSTALLER & CORE
+# 3. ZINIT CORE
 # ------------------------------------------------------------------------------
-if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
-    command mkdir -p "$HOME/.local/share/zinit"
-    command git clone https://github.com/zdharma-continuum/zinit "$HOME/.local/share/zinit/zinit.git"
-fi
+typeset -g ZINIT_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/zinit/zinit.git"
 
-source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
-autoload -Uz _zinit
-(( ${+_comps} )) && _comps[zinit]=_zinit
+if [[ -r "$ZINIT_HOME/zinit.zsh" ]]; then
+  source "$ZINIT_HOME/zinit.zsh"
+  autoload -Uz _zinit
+  (( ${+_comps} )) && _comps[zinit]=_zinit
 
 # ------------------------------------------------------------------------------
 # 3. PROMPT (Starship) - Load this as fast as possible
@@ -88,44 +74,70 @@ zinit wait"0" lucid for \
 zinit ice wait"0" lucid atload"_zsh_autosuggest_start"
 zinit light zsh-users/zsh-autosuggestions
 
-zinit ice wait"0" lucid atinit"zpcompinit; zpcdreplay"
-zinit light zsh-users/zsh-syntax-highlighting
-
 zinit ice wait"0" lucid
 zinit light zsh-users/zsh-completions
+
+if [[ -s "$HOME/.bun/_bun" ]]; then
+  source "$HOME/.bun/_bun"
+fi
+
+zinit ice wait"0" lucid atinit"zpcompinit; zpcdreplay"
+zinit light zsh-users/zsh-syntax-highlighting
 
 # ------------------------------------------------------------------------------
 # 5. TOOLS INITIALIZATION (Deferred with Zinit Turbo)
 # ------------------------------------------------------------------------------
-zinit ice wait"0" lucid atload'eval "$(zoxide init zsh)"; alias cd="z"'
-zinit light zdharma-continuum/null
+if (( $+commands[zoxide] )); then
+  zinit ice wait"0" lucid atload'eval "$(zoxide init zsh)"; alias cd="z"'
+  zinit light zdharma-continuum/null
+fi
 
-zinit ice wait"0" lucid atload'eval "$(fnm env --use-on-cd --shell zsh)"'
-zinit light zdharma-continuum/null
+if (( $+commands[fnm] )); then
+  zinit ice wait"0" lucid atload'eval "$(fnm env --use-on-cd --shell zsh)"'
+  zinit light zdharma-continuum/null
+fi
 
-zinit ice wait"0" lucid atload'source <(fzf --zsh)'
-zinit light zdharma-continuum/null
+if (( $+commands[fzf] )); then
+  zinit ice wait"0" lucid atload'source <(fzf --zsh)'
+  zinit light zdharma-continuum/null
+fi
 
-zinit ice wait"0" lucid atload'eval "$(pyenv init - zsh)"'
-zinit light zdharma-continuum/null
+if (( $+commands[pyenv] )); then
+  zinit ice wait"0" lucid atload'eval "$(pyenv init - zsh)"'
+  zinit light zdharma-continuum/null
+fi
+else
+  print -u2 -- "zsh: Zinit is not installed; run 'chezmoi apply'"
+fi
 
 # ------------------------------------------------------------------------------
 # 6. HISTORY & ALIASES
 # ------------------------------------------------------------------------------
 HISTFILE="$HOME/.zsh_history"
+HISTSIZE=50000
+SAVEHIST=10000
+
+setopt append_history
+setopt share_history
+setopt hist_expire_dups_first
+setopt hist_ignore_all_dups
 setopt hist_reduce_blanks
 setopt hist_no_store
 
 # FZF Config
-export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
-export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-export FZF_ALT_C_COMMAND="fd --type=d --hidden --strip-cwd-prefix --exclude .git"
+if (( $+commands[fd] )); then
+  export FZF_DEFAULT_COMMAND="fd --hidden --strip-cwd-prefix --exclude .git"
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+  export FZF_ALT_C_COMMAND="fd --type=d --hidden --strip-cwd-prefix --exclude .git"
+fi
 
 # Aliases
-alias ls="eza"
-alias l="eza -l --icons --git -a --ignore-glob '.git|.DS_Store'"
-alias lt="eza --tree --level=2 --long --icons --git --ignore-glob '.git|.DS_Store'"
-alias ltree="eza --tree --level=2 --icons --git --ignore-glob '.git|.DS_Store'"
+if (( $+commands[eza] )); then
+  alias ls="eza"
+  alias l="eza -l --icons --git -a --ignore-glob '.git|.DS_Store'"
+  alias lt="eza --tree --level=2 --long --icons --git --ignore-glob '.git|.DS_Store'"
+  alias ltree="eza --tree --level=2 --icons --git --ignore-glob '.git|.DS_Store'"
+fi
 alias gca='gemini "Review my staged changes, suggest a one-line Conventional Commit message, and wait for my OK before committing."'
 
 # ------------------------------------------------------------------------------

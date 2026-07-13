@@ -55,12 +55,12 @@ chezmoi apply
 Install the essential tools via Brew:
 
 ```bash
-brew install zoxide fzf eza fnm bat fd pyenv figlet lolcat
+brew install zoxide fzf eza fnm bat fd pyenv figlet lolcat starship
 ```
 
 For **Tmux** plugins, press `Ctrl + Space` then `I` inside a tmux session.
 
-> **Note**: Zinit and various Zsh plugins (starship, zsh-autosuggestions, syntax-highlighting, etc.) will be automatically bootstrapped the first time you open the shell — no manual installation required.
+> **Note**: Zinit is bootstrapped by `chezmoi apply` before `.zshrc` is installed. Opening a shell never performs network installation.
 
 ## ⌨️ Custom Aliases & Shortcuts
 
