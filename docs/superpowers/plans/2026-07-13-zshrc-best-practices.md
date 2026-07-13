@@ -85,7 +85,7 @@ git commit -m "chore: replace Claude-specific repository guidance"
 ### Task 2: Move Zinit Installation Out of Shell Startup
 
 **Files:**
-- Create: `run_before_10-install-zinit.sh`
+- Create: `run_once_before_10-install-zinit.sh`
 - Modify: `dot_zshrc:51-110`
 - Modify: `README.md:43-58`
 
@@ -105,7 +105,7 @@ Expected: one match inside the Zinit installer block.
 
 - [ ] **Step 2: Add an idempotent chezmoi bootstrap script**
 
-Create `run_before_10-install-zinit.sh` with exactly:
+Create `run_once_before_10-install-zinit.sh` with exactly:
 
 ```sh
 #!/bin/sh
@@ -168,7 +168,7 @@ Run:
 ```bash
 zsh -n dot_zshrc
 ! grep -Eq 'git clone|curl |wget ' dot_zshrc
-sh -n run_before_10-install-zinit.sh
+sh -n run_once_before_10-install-zinit.sh
 ```
 
 Expected: all commands exit `0` without output.
@@ -176,7 +176,7 @@ Expected: all commands exit `0` without output.
 - [ ] **Step 6: Commit the bootstrap boundary**
 
 ```bash
-git add run_before_10-install-zinit.sh dot_zshrc README.md
+git add run_once_before_10-install-zinit.sh dot_zshrc README.md
 git commit -m "refactor: bootstrap zinit through chezmoi"
 ```
 
@@ -405,7 +405,7 @@ git commit -m "refactor: separate machine-local zsh settings"
 **Files:**
 - Verify: `dot_zshrc`
 - Verify: `.chezmoiignore`
-- Verify: `run_before_10-install-zinit.sh`
+- Verify: `run_once_before_10-install-zinit.sh`
 - Verify: `README.md`
 
 **Interfaces:**
@@ -418,7 +418,7 @@ Run:
 
 ```bash
 zsh -n dot_zshrc
-sh -n run_before_10-install-zinit.sh
+sh -n run_once_before_10-install-zinit.sh
 git diff --check
 ```
 
@@ -491,7 +491,7 @@ Expected: if the file exists, leave it untouched unless the user explicitly conf
 - [ ] **Step 8: Commit any final documentation correction**
 
 ```bash
-git add README.md dot_zshrc .chezmoiignore run_before_10-install-zinit.sh
+git add README.md dot_zshrc .chezmoiignore run_once_before_10-install-zinit.sh
 git diff --cached --check
 git commit -m "docs: align zsh setup instructions"
 ```
